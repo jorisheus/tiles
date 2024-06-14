@@ -1,0 +1,16 @@
+{
+  "name": "xyz-hiring-assistant-sdk",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "webpack --watch --mode development --env development --config webpack.config.cjs"
+  },
+  "devDependencies": {
+    "dotenv-webpack": "^8.1.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5",
+    "webpack": "^5.92.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
