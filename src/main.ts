@@ -1,5 +1,5 @@
-import {Tile} from "./tile";
-
+import {Hex, ring, Tile} from "./tile";
+import {World} from "./world";
 
 
 export const initTilesApp = (canvas: HTMLCanvasElement) => {
@@ -9,35 +9,44 @@ export const initTilesApp = (canvas: HTMLCanvasElement) => {
         console.error('Failed to get canvas context')
         return
     }
+
+    const scale = 30;
+    const maxDistance = 8;
+    const tiles: Tile[][] = []
     
-    const scale = 50;
-    const tiles : Tile[] = []
-    for (let x = 1; x < canvas.width / scale / 3; x++) {
-        for (let y = 1; y < canvas.height / scale; y++) {
-            tiles.push(new Tile(x, y))
-        }
+    const center = new Tile(0, 0);
+    tiles.push([center])
+    for (let distance = 1; distance < maxDistance; distance++) {
+        const ringAt = ring(center, distance);
+        ringAt.forEach(coord => {
+            tiles[coord.q] = tiles[coord.q] || [];
+            tiles[coord.q][coord.r] = new Tile(coord.q, coord.r);
+            console.log(`Created tile at ${coord.q}, ${coord.r}`)
+        })
     }
     
-    console.log(`Created ${tiles.length} tiles`)
-
-
-    ctx.fillStyle = 'aliceblue'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    const world = new World(maxDistance, tiles, {x: canvas.width / 2, y: canvas.height / 2});
     
+    const wanderer2 = world.createWanderer();
+    const wanderer1 = world.createWanderer();
+    const wanderer3 = world.createWanderer();
+
+    console.log(`Created ${tiles.length} tiles`)
     const tick = () => {
         console.log('tick')
         //Clear
         //Do work
 
-        //Draw
-        tiles.forEach(tile => tile.draw(ctx, scale))
+        world.tick()
 
+        //Draw
+        world.draw(ctx, scale)
         //Wait
     }
 
-    //setInterval(tick, 1000)
+    setInterval(tick, 1000)
     tick()
-    
+
 }
 
 
