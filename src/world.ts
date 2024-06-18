@@ -1,15 +1,16 @@
 ﻿import {Hex} from "./hex";
 import {Wanderer} from "./wanderer";
-import {IEntity} from "./models/IEntity";
+import {type IEntity} from "./models/IEntity";
 import {Tile} from "./tile";
 import {add, getDirection, scale} from "./axial";
-import {I2DPoint} from "./models/I2DPoint";
+import {type I2DPoint} from "./models/I2DPoint";
+import type {IHexPoint} from "@/models/IHexPoint";
 
 export class World {
 
     private entities: IEntity[] = [];
 
-    constructor(public maxDistance: number, public tiles: Tile[][], private center: I2DPoint) {
+    constructor(public maxDistance: number, public tiles: Tile[][]) {
         console.log(`Created world with distance ${maxDistance} and having ${tiles.length} tiles`)
     }
 
@@ -25,20 +26,18 @@ export class World {
     }
 
     tick() {
-        console.log('World tick')
         this.entities.forEach(e => e.tick())
         this.foreachTile((tile) => {tile.tick()})
     }
 
 
-    draw(ctx: CanvasRenderingContext2D, scale: number) {
-        this.foreachTile((tile) => {tile.draw(ctx, scale, this.center)})
+    draw(ctx: CanvasRenderingContext2D, scale: number, center: I2DPoint) {
+        this.foreachTile((tile) => {tile.draw(ctx, scale, center)})
     }
 
     moveEntity(e: IEntity, dir: Hex) {
         const origin = new Hex(e.q, e.r);
         if(!this.tiles[dir.q] || !this.tiles[dir.q][dir.r]) {
-            console.error(`Invalid move to ${dir.q}, ${dir.r}`)
             return;
         }
 
@@ -46,9 +45,14 @@ export class World {
         e.q = dir.q;
         this.tiles[origin.q][origin.r].removeEntity(e);
         this.tiles[e.q][e.r].addEntity(e);
-        console.log(`Moved ${e} to ${e.r}, ${e.q}`)
     }
-    
+
+    setGoal(e: IEntity, previousGoal: IHexPoint | null, goal: IHexPoint) {
+        if(previousGoal)
+            this.tiles[previousGoal.q][previousGoal.r].removeEntityGoal(e);
+        this.tiles[goal.q][goal.r].addEntityGoal(e);
+    }
+
     private foreachTile(callback: (tile: Tile) => void) {
         for(let q = -1 * this.maxDistance; q <= this.maxDistance; q++) {
             for(let r = -1 * this.maxDistance; r <= this.maxDistance; r++) {

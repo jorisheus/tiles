@@ -1,4 +1,4 @@
-﻿import {IHexPoint} from "./IHexPoint";
+﻿import {type IHexPoint} from "./IHexPoint";
 
 export interface IEntity extends IHexPoint {
     tick(): void;

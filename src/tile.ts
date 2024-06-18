@@ -1,7 +1,7 @@
-﻿import {IEntity} from "./world";
-import {IHexPoint} from "./models/IHexPoint";
-import {I2DPoint} from "./models/I2DPoint";
+﻿import {type IHexPoint} from "./models/IHexPoint";
+import {type I2DPoint} from "./models/I2DPoint";
 import {hexToPixel} from "./axial";
+import {type IEntity} from "./models/IEntity";
 
 //https://www.redblobgames.com/grids/hexagons/
 function calculateApothem(radius: number): number {
@@ -12,6 +12,7 @@ function calculateApothem(radius: number): number {
 export class Tile implements IHexPoint {
 
     private entities: IEntity[] = [];
+    private goals: IEntity[] = [];
     private dirty = true;
     public s: number;
     private lastEntityVisit = 1000;
@@ -24,9 +25,10 @@ export class Tile implements IHexPoint {
     draw(ctx: CanvasRenderingContext2D, scale: number, center: I2DPoint) {
         if (!this.dirty) return;
         
-        const red = this.lastEntityVisit < 100 ? (30 + Math.floor(4 * (50 - this.lastEntityVisit))) : 30;
+        const red = this.entities.length > 0 ? 255 : this.lastEntityVisit < 10 ? (30 + Math.floor(10 * (10 - this.lastEntityVisit))) : 30;
+        const blue = this.goals.length > 0 ? 255 : 30;
 
-        let color = `rgb(${red} 90 30)`
+        let color = `rgb(${red} 90 ${blue})`
         ctx.fillStyle = color
         ctx.strokeStyle = 'black'
         ctx.lineWidth = 1
@@ -38,8 +40,6 @@ export class Tile implements IHexPoint {
         let distance = hexToPixel(this, scale);
         let centerX = center.x + distance.x
         let centerY = center.y + distance.y
-        
-        console.log(`Drawing tile at ${centerX}, ${centerY} - ${this.q}, ${this.r}`)
 
         const topOuterY = centerY - scale;
         const bottomOuterY = centerY + scale;
@@ -68,7 +68,7 @@ export class Tile implements IHexPoint {
     tick() {
         if (this.entities.length > 0)
             this.lastEntityVisit = 0;
-        else if(this.lastEntityVisit < 50) {
+        else if(this.lastEntityVisit < 10) {
             this.lastEntityVisit++;
             this.dirty = true;
         }
@@ -93,6 +93,21 @@ export class Tile implements IHexPoint {
         if (idx != -1) {
             this.dirty = true;
             this.entities.splice(idx, 1);
+        }
+    }
+
+    addEntityGoal(entity: IEntity) {
+        if (this.goals.indexOf(entity) == -1) {
+            this.dirty = true;
+            this.goals.push(entity);
+        }
+    }
+
+    removeEntityGoal(e: IEntity) {
+        const idx = this.goals.indexOf(e);
+        if (idx != -1) {
+            this.dirty = true;
+            this.goals.splice(idx, 1);
         }
     }
 } 

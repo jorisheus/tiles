@@ -1,0 +1,225 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+    background: var(--bg-main);
+    color: rgb(var(--color-700));
+    -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+
+
+    :root {
+        --brand-primary: black;
+
+
+        --bg-main: theme(colors.stone.100);
+        --bg-surface: theme(colors.white);
+        --bg-surface-50: theme(colors.stone.50);
+        --bg-surface-100: theme(colors.stone.100);
+        --bg-surface-200: theme(colors.stone.200);
+        --bg-surface-300: theme(colors.stone.300);
+        --bg-surface-400: theme(colors.stone.400);
+        --bg-surface-500: theme(colors.stone.500);
+        --text-primary: 38 38 38;
+        --text-secondary: 87 83 78;
+        --text-tertiary: 168 162 158;
+
+        --neutral: 0 0 0;
+
+        --color-50: theme(colors.stone.50);
+        --color-100: theme(colors.stone.100);
+        --color-200: theme(colors.stone.200);
+        --color-300: theme(colors.stone.300);
+        --color-400: theme(colors.stone.400);
+        --color-500: theme(colors.stone.500);
+        --color-600: theme(colors.stone.600);
+        --color-700: theme(colors.stone.700);
+        --color-800: theme(colors.stone.800);
+        --color-900: theme(colors.stone.900);
+        --color-950: theme(colors.stone.950);
+
+        --border-thin: 0.03125rem;
+
+        --desktop: 1280px;
+
+
+        --input-sm: 1.75rem;
+        --input-md: 2rem;
+        --input-lg: 2.25rem;
+
+        --input-px-sm: 0.5rem;
+        --input-px-md: 0.75rem;
+        --input-px-lg: 1rem;
+
+        --input-leading-sm: ;
+        --input-leading-md: ;
+        --input-leading-lg: ;
+
+        --input-text-sm: 0.75rem;
+        --input-text-md: 0.8125rem;
+        --input-text-lg: 0.875rem;
+
+    }
+
+    @media screen and (min-width: 1280px) {
+        :root {
+            --input-px-sm: 0.5rem;
+            --input-px-md: 0.75rem;
+            --input-px-lg: 1rem;
+        }
+    }
+
+    :root[theme="dark"] {
+        --bg-main: theme(colors.neutral.800);
+        --bg-surface: theme(colors.neutral.900);
+        --bg-surface-50: theme(colors.neutral.800);
+        --bg-surface-100: theme(colors.neutral.800);
+        --bg-surface-200: theme(colors.neutral.600);
+        --bg-surface-300: theme(colors.neutral.500);
+        --bg-surface-400: theme(colors.neutral.400);
+        --bg-surface-500: theme(colors.neutral.300);
+        --text-primary: 250 250 249;
+        --text-secondary: 214 221 209;
+        --text-tertiary: 87 83 78;
+        --neutral: 255 255 255;
+
+        --color-50: theme(colors.gray.950);
+        --color-100: theme(colors.gray.900);
+        --color-200: theme(colors.gray.800);
+        --color-300: theme(colors.gray.700);
+        --color-400: theme(colors.gray.600);
+        --color-500: theme(colors.gray.500);
+        --color-600: theme(colors.gray.400);
+        --color-700: theme(colors.gray.300);
+        --color-800: theme(colors.gray.200);
+        --color-900: theme(colors.gray.100);
+        --color-950: theme(colors.gray.50);
+    }
+
+}
+
+
+.dp__calendar_header_item {
+    height: auto;
+    width: var(--dp-cell-size);
+    color: rgb(var(--text-secondary));
+
+}
+
+
+.dp__cell_inner,
+.dp__calendar_header_item,
+.dp__overlay_cell,
+.dp__overlay_cell_active {
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+
+}
+
+.dp__overlay_col {
+    padding: 0;
+}
+
+.dp__cell_inner {
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+}
+
+.dp__btn {
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    height: 32px;
+    min-width: 32px;
+
+
+}
+
+.dp__calendar_row {
+    margin: 0;
+}
+
+.dp__inner_nav {
+    height: 32px;
+    min-width: 32px;
+    border-radius: 8px;
+}
+
+.dp__calendar_header_separator {
+    display: none;
+}
+
+.dp__range_end,
+.dp__range_start,
+.dp__active_date,
+.dp__overlay_cell_active {
+    background: var(--brand-primary);
+
+}
+
+.dp__overlay_container {
+    padding: 8px;
+}
+
+.dp__today {
+    border: 1px solid var(--brand-primary);
+}
+
+.dp__inner_nav svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* 
+Surface: white | stone 900
+
+
+50
+#fafaf9	
+rgb(250,250,249)	
+hsl(60,9.1%,97.8%)
+100
+#f5f5f4	
+rgb(245,245,244)	
+hsl(60,4.8%,95.9%)
+200
+#e7e5e4	
+rgb(231,229,228)	
+hsl(20,5.9%,90%)
+300
+#d6d3d1	
+rgb(214,211,209)	
+hsl(24,5.7%,82.9%)
+400
+#a8a29e	
+rgb(168,162,158)	
+hsl(24,5.4%,63.9%)
+500
+#78716c	
+rgb(120,113,108)	
+hsl(25,5.3%,44.7%)
+600
+#57534e	
+rgb(87,83,78)	
+hsl(33.3,5.5%,32.4%)
+700
+#44403c	
+rgb(68,64,60)	
+hsl(30,6.3%,25.1%)
+800
+#292524	
+rgb(41,37,36)	
+hsl(12,6.5%,15.1%)
+900
+#1c1917	
+rgb(28,25,23)	
+hsl(24,9.8%,10%)
+
+
+*/

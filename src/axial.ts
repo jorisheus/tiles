@@ -1,6 +1,6 @@
 ﻿import {Hex} from "./hex";
-import {IHexPoint} from "./models/IHexPoint";
-import {I2DPoint} from "./models/I2DPoint";
+import {type IHexPoint} from "./models/IHexPoint";
+import {type I2DPoint} from "./models/I2DPoint";
 
 const sqrt3 = Math.sqrt(3);
 const sqrt3div2 = Math.sqrt(3) / 2;
@@ -21,27 +21,27 @@ export function getDirection(direction: number): Hex {
     return directionVectors[direction];
 }
 
-export function add(hex: Hex, vec: Hex) : Hex {
+export function add(hex: IHexPoint, vec: IHexPoint) : Hex {
     return new Hex(hex.q + vec.q, hex.r + vec.r)
 }
-export function subtract(hex: Hex, vec: Hex) : Hex {
+export function subtract(hex: IHexPoint, vec: IHexPoint) : Hex {
     return new Hex(hex.q - vec.q, hex.r - vec.r)
 }
 
-export function getDistance(a: Hex, b: Hex): number {
+export function getDistance(a: IHexPoint, b: IHexPoint): number {
     const vector = subtract(a, b);
     return (Math.abs(vector.q) + Math.abs(vector.q + vector.r) + Math.abs(vector.r)) / 2;
 }
 
-export function getNeighbour(hex: Hex, dir: number) : Hex {
+export function getNeighbour(hex: IHexPoint, dir: number) : Hex {
     return add(hex, getDirection(dir));
 }
 
-export function scale (hex: Hex, factor: number): Hex {
+export function scale (hex: IHexPoint, factor: number): Hex {
     return new Hex(hex.q * factor, hex.r * factor);
 }
 
-export function getRing(center: Hex, radius: number): Hex[] {
+export function getRing(center: IHexPoint, radius: number): Hex[] {
     const results: Hex[] = [];
     let hex = add(center, scale(getDirection(4), radius));
     for (let i = 0; i < 6; i++) {
