@@ -1,10 +1,15 @@
-﻿import {add, getDirection, Hex, IHexPoint, IPoint, neighbour, scale, Tile} from "./tile";
+﻿import {Hex} from "./hex";
+import {Wanderer} from "./wanderer";
+import {IEntity} from "./models/IEntity";
+import {Tile} from "./tile";
+import {add, getDirection, scale} from "./axial";
+import {I2DPoint} from "./models/I2DPoint";
 
 export class World {
 
     private entities: IEntity[] = [];
 
-    constructor(public maxDistance: number, public tiles: Tile[][], private center: IPoint) {
+    constructor(public maxDistance: number, public tiles: Tile[][], private center: I2DPoint) {
         console.log(`Created world with distance ${maxDistance} and having ${tiles.length} tiles`)
     }
 
@@ -22,53 +27,35 @@ export class World {
     tick() {
         console.log('World tick')
         this.entities.forEach(e => e.tick())
+        this.foreachTile((tile) => {tile.tick()})
     }
 
 
     draw(ctx: CanvasRenderingContext2D, scale: number) {
-        
-        for(let q = -1 * this.maxDistance; q <= this.maxDistance; q++) {
-            for(let r = -1 * this.maxDistance; r <= this.maxDistance; r++) {
-                if(!this.tiles[q] || !this.tiles[q][r]) continue;
-                this.tiles[q][r].draw(ctx, scale, this.center)
-            }
-        }
+        this.foreachTile((tile) => {tile.draw(ctx, scale, this.center)})
     }
 
     moveEntity(e: IEntity, dir: Hex) {
-        this.tiles[e.q][e.r].removeEntity(e);
+        const origin = new Hex(e.q, e.r);
+        if(!this.tiles[dir.q] || !this.tiles[dir.q][dir.r]) {
+            console.error(`Invalid move to ${dir.q}, ${dir.r}`)
+            return;
+        }
+
         e.r = dir.r;
         e.q = dir.q;
-        if(!this.tiles[e.q] || !this.tiles[e.q][e.r]) return;
+        this.tiles[origin.q][origin.r].removeEntity(e);
         this.tiles[e.q][e.r].addEntity(e);
         console.log(`Moved ${e} to ${e.r}, ${e.q}`)
     }
-}
-
-export interface IEntity extends IHexPoint {
-    tick(): void;
-}
-
-export class Wanderer implements IEntity {
-    constructor(private world: World, public q: number, public r: number) {
-
-    }
-
-    tick = () => {
-        console.log('Wanderer tick')
-
-        const direction = Math.floor(Math.random() * 6)
-        this.move(direction);
-    };
-
-    private move = (direction: number) => {
-        if (direction < 0 || direction > 5) {
-            console.error('Invalid direction')
-            return
+    
+    private foreachTile(callback: (tile: Tile) => void) {
+        for(let q = -1 * this.maxDistance; q <= this.maxDistance; q++) {
+            for(let r = -1 * this.maxDistance; r <= this.maxDistance; r++) {
+                if(!this.tiles[q] || !this.tiles[q][r]) continue;
+                callback(this.tiles[q][r]);
+            }
         }
-
-        const dir = neighbour(this, direction);
-        this.world.moveEntity(this, dir);
     }
-
 }
+
