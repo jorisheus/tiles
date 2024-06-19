@@ -4,19 +4,47 @@ import type {IEntity} from "@/models/IEntity";
 import type {IHexPoint} from "@/models/IHexPoint";
 
 export class Wanderer implements IEntity {
+    private diesOfOldAgeAt: number;
     constructor(private world: World, public q: number, public r: number) {
         this.goal = this.world.getRandomLocation();
         this.world.setGoal(this, null, this.goal);
+        this.diesOfOldAgeAt = 1000 + Math.random() * 1000;
     }
 
     private goal: IHexPoint = {q: 0, r: 0}
     private tempGoal: IHexPoint | null = null
     private pathToGoal: IHexPoint[] = []
     private sleepCount = 0;
+    private goalsReached = 0;
+    private energy = 200;
+    private age = 0;
 
-    tick = () => {
+    tick = (tickCount: number) => {
+        this.age++;
         if (this.sleepCount > 0) {
             this.sleepCount--;
+            return;
+        }
+        this.energy--;
+        
+        if(this.energy < 0) {
+            console.log(`Wanderer ${this.q},${this.r} has reached ${this.goalsReached} goals but has no energy left at tick ${tickCount}, so it dies.`)
+            this.world.removeEntity(this, this.goal);
+            return;
+        }
+        
+        if(this.energy > 600){
+            console.log(`Wanderer ${this.q},${this.r} has reached ${this.goalsReached} goals and has ${this.energy} energy at tick ${tickCount}, so it reproduces.`)
+            const hex = add(this, getDirection(Math.floor(Math.random() * 6)))
+            const w = new Wanderer(this.world, hex.q, hex.r);
+            this.world.addEntity(w);
+            this.energy -= 400;
+            return;
+        }
+        
+        if(this.age > this.diesOfOldAgeAt) {
+            console.log(`Wanderer ${this.q},${this.r} has reached ${this.goalsReached} goals and dies of old age at tick ${tickCount}.`)
+            this.world.removeEntity(this, this.goal);
             return;
         }
         
@@ -27,6 +55,8 @@ export class Wanderer implements IEntity {
             this.goal = newGoal;
 
             this.pathToGoal = this.world.bestPath(this, this.goal, 20)
+            this.goalsReached += 1;
+            this.energy += 150;
             // Just a little break...
             this.sleepCount = 10;
             return;

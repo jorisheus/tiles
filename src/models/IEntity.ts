@@ -1,6 +1,6 @@
 ﻿import {type IHexPoint} from "./IHexPoint";
 
 export interface IEntity extends IHexPoint {
-    tick(): void;
+    tick(tickCount: number): void;
     sleeping() : boolean;
 }

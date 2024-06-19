@@ -9,6 +9,8 @@ import type {IHexPoint} from "@/models/IHexPoint";
 export class World {
 
     private entities: IEntity[] = [];
+    private births: number = 0;
+    private deaths: number = 0;
 
     constructor(public maxDistance: number, public tiles: Tile[][]) {
         console.log(`Created world with distance ${maxDistance} and having ${tiles.length} tiles`)
@@ -20,16 +22,24 @@ export class World {
         const w = new Wanderer(this, tile.q, tile.r);
         tile.addEntity(w);
         this.entities.push(w);
+        this.births++;
         return w;
     }
 
-    tick() {
-        this.entities.forEach(e => e.tick())
+    tick(tickCount: number) {
+        this.entities.forEach(e => e.tick(tickCount))
         this.foreachTile((tile) => {
             tile.tick()
         })
     }
 
+    public getStats() {
+        return {
+            entities: this.entities.length,
+            births: this.births,
+            deaths: this.deaths
+        }
+    }
 
     draw(ctx: CanvasRenderingContext2D, scale: number, center: I2DPoint) {
         this.foreachTile((tile) => {
@@ -159,6 +169,19 @@ export class World {
                 callback(this.tiles[q][r]);
             }
         }
+    }
+
+    removeEntity(entity: IEntity, goal: IHexPoint) {
+        this.tiles[entity.q][entity.r].removeEntity(entity);
+        this.tiles[goal.q][goal.r].removeEntityGoal(entity);
+        this.entities = this.entities.filter(e => e != entity);
+this.deaths++;
+    }
+
+    addEntity(w: Wanderer) {
+        this.entities.push(w);
+        this.tiles[w.q][w.r].addEntity(w);
+        this.births++;
     }
 }
 

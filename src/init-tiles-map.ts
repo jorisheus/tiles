@@ -85,6 +85,12 @@ export const useTilesMap = (distance: number, wanderers: number, obstacleOptions
         scale = Math.min(canvas.width, canvas.height) / (maxDistance * 3)
     }
     
+    const destroy = () => {
+        ctx = null;
+        tiles.splice(0, tiles.length);
+    }
+    
+    
     const tick = () => {
         if(!ctx) return;
         if(state.value == 'progress') return;
@@ -93,7 +99,7 @@ export const useTilesMap = (distance: number, wanderers: number, obstacleOptions
         //Clear
         //Do work
 
-        world.tick()
+        world.tick(ticks.value)
 
         //Draw
         world.draw(ctx, scale, center2D)
@@ -107,5 +113,8 @@ export const useTilesMap = (distance: number, wanderers: number, obstacleOptions
     }
 
 
-    return {world, tick, lastTickTime, ticks, state, setCanvas}
+    return {world, tick, lastTickTime, ticks, state, setCanvas, destroy,
+        getStats: () => world.getStats()
+        
+    }
 }
