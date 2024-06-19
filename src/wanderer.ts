@@ -1,4 +1,4 @@
-﻿import {add, getDirection, scale, subtract} from "./axial";
+﻿import {add, getDirection, getFirstStepFromAToB, scale, subtract} from "./axial";
 import {World} from "./world";
 import type {IEntity} from "@/models/IEntity";
 import {Hex} from "@/hex";
@@ -15,32 +15,21 @@ export class Wanderer implements IEntity {
     tick = () => {
         //const distance = getDistance(this, this.goal);
         if(this.goal.q == this.q && this.goal.r == this.r) {
-            console.log('Goal reached!')
             const newGoal = this.world.getRandomLocation();
             this.world.setGoal(this, this.goal, newGoal);
             this.goal = newGoal;
         }
 
-        const vec = subtract(this.goal, this);
-        if (Math.abs(vec.q) > Math.abs(vec.r)) {
-            if (vec.q >= 0)
-                this.move(new Hex(+1, -1));
-            else
-                this.move(new Hex(-1, +1));
-        } else if (Math.abs(vec.r) > Math.abs(vec.s)) {
-            if (vec.r < 0)
-                this.move(new Hex(+1, -1));
-            else this.move(new Hex(-1, +1));
-        } else {
-            if (vec.s >= 0)
-                this.move(new Hex(-1, 0));
-            else this.move(new Hex(+1, 0));
-        }
+        this.moveToLocation(getFirstStepFromAToB(this, this.goal))
     };
 
-    private move = (direction: IHexPoint) => {
-        const dir = add(this, direction);
-        if(!this.world.moveEntity(this, dir)) {
+    private moveToDirection = (direction: IHexPoint) => {
+        const location = add(this, direction);
+        this.moveToLocation(location)
+    }
+    
+    private moveToLocation = (location: IHexPoint) => {
+        if(!this.world.moveEntity(this, location)) {
             const hex = add(this, getDirection(Math.floor(Math.random() * 6)))
             this.world.moveEntity(this, hex)
         }

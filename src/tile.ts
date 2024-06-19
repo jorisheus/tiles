@@ -3,7 +3,6 @@ import {type I2DPoint} from "./models/I2DPoint";
 import {hexToPixel} from "./axial";
 import {type IEntity} from "./models/IEntity";
 
-//https://www.redblobgames.com/grids/hexagons/
 function calculateApothem(radius: number): number {
     const degrees30InRadians = Math.PI / 6; // Convert 30 degrees to radians
     return radius * Math.cos(degrees30InRadians);
@@ -17,7 +16,7 @@ export class Tile implements IHexPoint {
     public s: number;
     private lastEntityVisit = 1000;
 
-    constructor(public q: number, public r: number) {
+    constructor(public q: number, public r: number, public obstacle: boolean = false) {
         this.s = -q - r;
     }
 
@@ -25,10 +24,13 @@ export class Tile implements IHexPoint {
     draw(ctx: CanvasRenderingContext2D, scale: number, center: I2DPoint) {
         if (!this.dirty) return;
         
-        const red = this.entities.length > 0 ? 255 : this.lastEntityVisit < 10 ? (30 + Math.floor(10 * (10 - this.lastEntityVisit))) : 30;
-        const blue = this.goals.length > 0 ? 255 : 30;
+        let color = 'grey'
+        if(!this.obstacle) {
+            const red = this.entities.length > 0 ? 255 : this.lastEntityVisit < 10 ? (30 + Math.floor(10 * (10 - this.lastEntityVisit))) : 30;
+            const blue = this.goals.length > 0 ? 255 : 30;
 
-        let color = `rgb(${red} 90 ${blue})`
+            color = `rgb(${red} 90 ${blue})`
+        }
         ctx.fillStyle = color
         ctx.strokeStyle = 'black'
         ctx.lineWidth = 1

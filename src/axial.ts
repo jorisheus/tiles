@@ -33,6 +33,21 @@ export function getDistance(a: IHexPoint, b: IHexPoint): number {
     return (Math.abs(vector.q) + Math.abs(vector.q + vector.r) + Math.abs(vector.r)) / 2;
 }
 
+export function getRandomPointWithinDistance(distance: number): Hex {
+    const q = Math.floor(distance - Math.random() * distance * 2);
+    //distance = (abs(q) + abs(q + r) + abs(r)) / 2
+    //r = 2 * distance - abs(q) - abs(q + r)
+    const maxR = distance - Math.abs(q);
+    let r;
+    if (q >= 0) {
+        r = Math.floor(-Math.random() * maxR);
+    } else {
+        r = Math.floor(Math.random() * maxR);
+    }
+    const result = new Hex(q, r);
+    return result;
+}
+
 export function getNeighbour(hex: IHexPoint, dir: number) : Hex {
     return add(hex, getDirection(dir));
 }
@@ -51,4 +66,50 @@ export function getRing(center: IHexPoint, radius: number): Hex[] {
         }
     }
     return results;
+}
+
+function round(frac: IHexPoint) : Hex {
+    let q = Math.round(frac.q);
+    let r = Math.round(frac.r);
+    const fracS = -frac.q - frac.r;
+    let s = Math.round(fracS);
+    let q_diff = Math.abs(q - frac.q);
+    let r_diff = Math.abs(r - frac.r);
+    let s_diff = Math.abs(s - fracS);
+    if (q_diff > r_diff && q_diff > s_diff) {
+        q = -r - s;
+    } else if (r_diff > s_diff) {
+        r = -q - s;
+    }
+    return new Hex(q, r);
+}
+
+//Linear interpolation for floats
+function lerpFloat(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+}
+
+//** Linear interpolation for hexes
+// * @param a - start hex
+// * @param b - end hex
+// * @param t - interpolation factor (where on the line to calculate the point)
+export function lerp(a: IHexPoint, b: IHexPoint, t: number): Hex {
+    return round({
+        q: lerpFloat(a.q, b.q, t),
+        r: lerpFloat(a.r, b.r, t),
+    });
+}
+
+export function getHexesInLine(a: IHexPoint, b: IHexPoint): Hex[] {
+    const N = getDistance(a, b);
+    const results: Hex[] = [];
+    for (let i = 0; i <= N; i++) {
+        results.push(round(lerp(a, b, 1.0 / N * i)));
+    }
+    return results;
+}
+
+export function getFirstStepFromAToB(a: IHexPoint, b: IHexPoint): Hex {
+    const N = getDistance(a, b);
+    return round(lerp(a, b, 1.0 / N));
 }

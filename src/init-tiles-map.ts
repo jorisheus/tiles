@@ -1,11 +1,22 @@
 import {Tile} from "./tile";
 import {World} from "./world";
-import {getRing} from "./axial";
+import {add, getDirection, getHexesInLine, getRandomPointWithinDistance, getRing} from "./axial";
 import {ref} from "vue";
 import type {I2DPoint} from "@/models/I2DPoint";
 
+export interface IObstacleOptions {
+    obstacleCount: number;
+    maxObstacleSegmentLength: number;
+    maxSegments: number;
+}
+const defaultObstacleOptions: IObstacleOptions = {
+    obstacleCount: 20,
+    maxObstacleSegmentLength: 10,
+    maxSegments: 10
+}
 
-export const useTilesMap = (distance: number, wanderers: number) => {
+//https://www.redblobgames.com/grids/hexagons/
+export const useTilesMap = (distance: number, wanderers: number, obstacleOptions: IObstacleOptions = defaultObstacleOptions) => {
     const lastTickTime = ref<number>(0);
     const ticks = ref<number>(0);
     let scale = 15;
@@ -17,22 +28,35 @@ export const useTilesMap = (distance: number, wanderers: number) => {
     tiles.push([center])
     for (let distance = 1; distance < maxDistance; distance++) {
         const ringAt = getRing(center, distance);
+        const isObstacle = distance == maxDistance - 1
         ringAt.forEach(coord => {
             tiles[coord.q] = tiles[coord.q] || [];
-            tiles[coord.q][coord.r] = new Tile(coord.q, coord.r);
-            console.log(`Created tile at ${coord.q}, ${coord.r}`)
+            tiles[coord.q][coord.r] = new Tile(coord.q, coord.r, isObstacle);
         })
     }
 
     let center2D :I2DPoint = {x: 0, y: 0} 
     let ctx : CanvasRenderingContext2D | null = null
     const world = new World(maxDistance, tiles);
+    
+    for (let i = 0; i < obstacleOptions.obstacleCount; i++) {
+        const segmentCount = Math.floor(Math.random() * obstacleOptions.maxSegments) + 1;
+        //Keep well within boundaries
+        let startObstacle = getRandomPointWithinDistance(maxDistance * .8);
+        for(let j = 0; j < segmentCount; j++) {
+            const segmentLength = Math.floor(Math.random() * obstacleOptions.maxObstacleSegmentLength) + 1;
+            const endPoint = add(startObstacle, getRandomPointWithinDistance(segmentLength))
+            const hexes = getHexesInLine(startObstacle, endPoint)
+            hexes.forEach(hex => {
+                const tile = world.tiles[hex.q][hex.r];
+                tile.obstacle = true;
+            })
+            startObstacle = endPoint;
+        }
+    }
 
     for (let x = 0; x < wanderers; x++)
         world.createWanderer();
-
-
-    console.log(`Created ${tiles.length} tiles`)
     
     const setCanvas = (canvas: HTMLCanvasElement) => {
         console.log(`Init tiles app with canvas width: ${canvas.width} height: ${canvas.height}`)
@@ -44,6 +68,7 @@ export const useTilesMap = (distance: number, wanderers: number) => {
         center2D = {x: canvas.width / 2, y: canvas.height / 2}
         scale = Math.min(canvas.width, canvas.height) / (maxDistance * 3)
     }
+    
     const tick = () => {
         if(!ctx) return;
         if(state.value == 'progress') return;

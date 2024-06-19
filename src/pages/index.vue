@@ -33,7 +33,7 @@ onMounted(() => {
     <div>Tick time : {{tilesMap.lastTickTime}}ms max: {{maxTickTime}}ms</div>
     <div>Ticks: {{tilesMap.ticks}}</div>
     <button class="border border-black bg-amber-200 p-1 m-1 shadow shadow-amber-700" @click="tilesMap.tick()">tick</button>
-    
+    <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank" class="text-blue-500">The Bible</a>
   </div>
   <canvas class="w-full h-full" ref="mainCanvas"></canvas>
 </template>

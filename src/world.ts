@@ -2,7 +2,7 @@
 import {Wanderer} from "./wanderer";
 import {type IEntity} from "./models/IEntity";
 import {Tile} from "./tile";
-import {add, getDirection, scale} from "./axial";
+import {add, getDirection, getDistance, getRandomPointWithinDistance, scale} from "./axial";
 import {type I2DPoint} from "./models/I2DPoint";
 import type {IHexPoint} from "@/models/IHexPoint";
 
@@ -38,25 +38,25 @@ export class World {
     }
 
     getRandomLocation(): Hex {
-        while (true) {
-            const hex = new Hex(Math.floor(this.maxDistance - Math.random() * this.maxDistance * 2),
-                Math.floor(this.maxDistance - Math.random() * this.maxDistance * 2));
-            if (this.locationExists(hex)) return hex;
-        }
+        do {
+            const hex = getRandomPointWithinDistance(this.maxDistance);
+            const tile = this.tiles[hex.q][hex.r];
+            if (!tile.obstacle) {
+                return hex;
+            }
+        } while (true)
     }
 
-    locationExists(location: Hex): boolean {
-        return !!this.tiles[location.q] && !!this.tiles[location.q][location.r];
-    }
-
-    moveEntity(e: IEntity, dir: Hex): boolean {
+    moveEntity(e: IEntity, newLocation: IHexPoint): boolean {
         const origin = new Hex(e.q, e.r);
-        if (!this.tiles[dir.q] || !this.tiles[dir.q][dir.r]) {
+        const distance = getDistance({q: 0, r: 0}, newLocation);
+        if (distance >= this.maxDistance) {
             return false;
         }
+        if(this.tiles[newLocation.q][newLocation.r].obstacle) return false;
 
-        e.r = dir.r;
-        e.q = dir.q;
+        e.r = newLocation.r;
+        e.q = newLocation.q;
         this.tiles[origin.q][origin.r].removeEntity(e);
         this.tiles[e.q][e.r].addEntity(e);
         return true;
