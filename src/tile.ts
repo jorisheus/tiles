@@ -15,6 +15,7 @@ export class Tile implements IHexPoint {
     private dirty = true;
     public s: number;
     private lastEntityVisit = 1000;
+    highlight: number = 0;
 
     constructor(public q: number, public r: number, public obstacle: boolean = false) {
         this.s = -q - r;
@@ -26,10 +27,15 @@ export class Tile implements IHexPoint {
         
         let color = 'grey'
         if(!this.obstacle) {
-            const red = this.entities.length > 0 ? 255 : this.lastEntityVisit < 10 ? (30 + Math.floor(10 * (10 - this.lastEntityVisit))) : 30;
-            const blue = this.goals.length > 0 ? 255 : 30;
+            if(this.entities.length > 0 && this.entities[0].sleeping())
+                color = 'yellow'
+            else {
+                const red = this.entities.length > 0 ? 255 : this.lastEntityVisit < 10 ? (30 + Math.floor(10 * (10 - this.lastEntityVisit))) : 30;
+                const blue = this.goals.length > 0 ? 255 : 30;
+                const green = (this.goals.length > 0 ? 30 : 90) + 5 * (5 - Math.abs(5 - this.highlight))
 
-            color = `rgb(${red} 90 ${blue})`
+                color = `rgb(${red} ${green} ${blue})`    
+            }
         }
         ctx.fillStyle = color
         ctx.strokeStyle = 'black'
@@ -74,6 +80,11 @@ export class Tile implements IHexPoint {
             this.lastEntityVisit++;
             this.dirty = true;
         }
+
+        if(this.highlight > 0) {
+            this.highlight--;
+            this.dirty = true;
+        }
     }
 
     clearEntities() {
@@ -111,5 +122,10 @@ export class Tile implements IHexPoint {
             this.dirty = true;
             this.goals.splice(idx, 1);
         }
+    }
+    
+    highlightTile(hightlight: boolean = true) {
+        this.highlight = hightlight ? 10 : 0;
+        this.dirty = true;
     }
 } 

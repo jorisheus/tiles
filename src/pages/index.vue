@@ -4,14 +4,32 @@ import {ref, onMounted, watch} from 'vue'
 import {useTilesMap} from "@/init-tiles-map";
 
 const mainCanvas = ref<HTMLCanvasElement | null>(null)
-const tilesMap = useTilesMap(100, 50)
+const tilesMap = useTilesMap(100, 10)
 
+const medTickTime = ref(0);
 const maxTickTime = ref(0);
-watch(tilesMap.lastTickTime, (newVal) => {
-  if (newVal > maxTickTime.value) {
-    maxTickTime.value = newVal
+const maxTickAge = ref(0);
+
+const playing = ref(true)
+const toggle = () => {
+  playing.value = !playing.value
+  if(playing.value) {
+    tick()
   }
-})
+}
+
+const tick = () => {
+  if (playing.value) {
+    tilesMap.tick()
+
+    medTickTime.value = Math.floor((medTickTime.value * (tilesMap.ticks.value - 1) + tilesMap.lastTickTime.value) / tilesMap.ticks.value)
+    if (tilesMap.lastTickTime.value > maxTickTime.value || maxTickAge.value < tilesMap.ticks.value - 40) {
+      maxTickTime.value = tilesMap.lastTickTime.value
+      maxTickAge.value = tilesMap.ticks.value
+    }
+    setTimeout(tick, Math.max(0, 24 - tilesMap.lastTickTime.value))
+  }
+}
 
 onMounted(() => {
   const canvas = mainCanvas.value
@@ -21,8 +39,7 @@ onMounted(() => {
     canvas.height = window.innerHeight;
     tilesMap.setCanvas(canvas)
 
-    tilesMap.tick()
-    setInterval(tilesMap.tick, 50)
+    tick()
   }
 })
 
@@ -30,9 +47,9 @@ onMounted(() => {
 
 <template>
   <div class="absolute top-2 left-2">
-    <div>Tick time : {{tilesMap.lastTickTime}}ms max: {{maxTickTime}}ms</div>
-    <div>Ticks: {{tilesMap.ticks}}</div>
-    <button class="border border-black bg-amber-200 p-1 m-1 shadow shadow-amber-700" @click="tilesMap.tick()">tick</button>
+    <div class="font-mono">Tick time avg: {{ medTickTime }}ms max: {{ maxTickTime }}ms</div>
+    <div class="font-mono">Ticks: {{ tilesMap.ticks }}</div>
+    <button class="border border-black bg-amber-200 p-1 m-1 shadow shadow-amber-700" @click="toggle()">{{ playing ? 'pause' : 'play'}}</button>
     <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank" class="text-blue-500">The Bible</a>
   </div>
   <canvas class="w-full h-full" ref="mainCanvas"></canvas>

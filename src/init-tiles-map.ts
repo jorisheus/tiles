@@ -1,6 +1,6 @@
 import {Tile} from "./tile";
 import {World} from "./world";
-import {add, getDirection, getHexesInLine, getRandomPointWithinDistance, getRing} from "./axial";
+import {add, getDirection, getDistance, getHexesInLine, getRandomPointWithinDistance, getRing} from "./axial";
 import {ref} from "vue";
 import type {I2DPoint} from "@/models/I2DPoint";
 
@@ -10,8 +10,8 @@ export interface IObstacleOptions {
     maxSegments: number;
 }
 const defaultObstacleOptions: IObstacleOptions = {
-    obstacleCount: 20,
-    maxObstacleSegmentLength: 10,
+    obstacleCount: 25,
+    maxObstacleSegmentLength: 20,
     maxSegments: 10
 }
 
@@ -42,15 +42,31 @@ export const useTilesMap = (distance: number, wanderers: number, obstacleOptions
     for (let i = 0; i < obstacleOptions.obstacleCount; i++) {
         const segmentCount = Math.floor(Math.random() * obstacleOptions.maxSegments) + 1;
         //Keep well within boundaries
-        let startObstacle = getRandomPointWithinDistance(maxDistance * .8);
+        let startObstacle = getRandomPointWithinDistance(maxDistance);
         for(let j = 0; j < segmentCount; j++) {
-            const segmentLength = Math.floor(Math.random() * obstacleOptions.maxObstacleSegmentLength) + 1;
-            const endPoint = add(startObstacle, getRandomPointWithinDistance(segmentLength))
+            const segmentLength = Math.floor(Math.random() * obstacleOptions.maxObstacleSegmentLength / 2) + obstacleOptions.maxObstacleSegmentLength / 2;
+            let endPoint = add(startObstacle, getRandomPointWithinDistance(segmentLength))
+            while(getDistance({q: 0, r: 0}, endPoint) >= maxDistance) {
+                endPoint = add(startObstacle, getRandomPointWithinDistance(segmentLength))
+            }
+            
             const hexes = getHexesInLine(startObstacle, endPoint)
             hexes.forEach(hex => {
-                const tile = world.tiles[hex.q][hex.r];
-                tile.obstacle = true;
+                if(Math.random() > 0.2 && world.tiles[hex.q] && world.tiles[hex.q][hex.r])
+                    world.tiles[hex.q][hex.r].obstacle = true;
             })
+            
+            const endPointThickness = Math.floor(Math.random() * 3) + 1;
+            for (let distance = 1; distance < endPointThickness; distance++) {
+                const ringAt = getRing(endPoint, distance);
+                ringAt.forEach(coord => {
+                    if(world.tiles[coord.q] && world.tiles[coord.q][coord.r]) {
+                        const tile = world.tiles[coord.q][coord.r];
+                        tile.obstacle = true;
+                    }
+                })
+            }
+            
             startObstacle = endPoint;
         }
     }

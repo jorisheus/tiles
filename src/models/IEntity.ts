@@ -2,4 +2,5 @@
 
 export interface IEntity extends IHexPoint {
     tick(): void;
+    sleeping() : boolean;
 }
