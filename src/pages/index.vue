@@ -4,7 +4,7 @@ import {ref, onMounted, watch} from 'vue'
 import {useTilesMap} from "@/init-tiles-map";
 
 const mainCanvas = ref<HTMLCanvasElement | null>(null)
-const tilesMap = useTilesMap()
+const tilesMap = useTilesMap(100, 50)
 
 const maxTickTime = ref(0);
 watch(tilesMap.lastTickTime, (newVal) => {
@@ -29,9 +29,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <span>Tick time</span>: {{tilesMap.lastTickTime}} {{maxTickTime}}
-    <span>Ticks</span>: {{tilesMap.ticks}}
+  <div class="absolute top-2 left-2">
+    <div>Tick time : {{tilesMap.lastTickTime}}ms max: {{maxTickTime}}ms</div>
+    <div>Ticks: {{tilesMap.ticks}}</div>
     <button class="border border-black bg-amber-200 p-1 m-1 shadow shadow-amber-700" @click="tilesMap.tick()">tick</button>
     
   </div>

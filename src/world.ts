@@ -15,9 +15,7 @@ export class World {
     }
 
     createWanderer() {
-        const distance = Math.floor(Math.random() * this.maxDistance);
-        const direction = Math.floor(Math.random() * 6);
-        let hex = add(new Hex(0,0), scale(getDirection(direction), distance));
+        let hex = this.getRandomLocation();
         const tile = this.tiles[hex.q][hex.r];
         const w = new Wanderer(this, tile.q, tile.r);
         tile.addEntity(w);
@@ -27,36 +25,53 @@ export class World {
 
     tick() {
         this.entities.forEach(e => e.tick())
-        this.foreachTile((tile) => {tile.tick()})
+        this.foreachTile((tile) => {
+            tile.tick()
+        })
     }
 
 
     draw(ctx: CanvasRenderingContext2D, scale: number, center: I2DPoint) {
-        this.foreachTile((tile) => {tile.draw(ctx, scale, center)})
+        this.foreachTile((tile) => {
+            tile.draw(ctx, scale, center)
+        })
     }
 
-    moveEntity(e: IEntity, dir: Hex) {
+    getRandomLocation(): Hex {
+        while (true) {
+            const hex = new Hex(Math.floor(this.maxDistance - Math.random() * this.maxDistance * 2),
+                Math.floor(this.maxDistance - Math.random() * this.maxDistance * 2));
+            if (this.locationExists(hex)) return hex;
+        }
+    }
+
+    locationExists(location: Hex): boolean {
+        return !!this.tiles[location.q] && !!this.tiles[location.q][location.r];
+    }
+
+    moveEntity(e: IEntity, dir: Hex): boolean {
         const origin = new Hex(e.q, e.r);
-        if(!this.tiles[dir.q] || !this.tiles[dir.q][dir.r]) {
-            return;
+        if (!this.tiles[dir.q] || !this.tiles[dir.q][dir.r]) {
+            return false;
         }
 
         e.r = dir.r;
         e.q = dir.q;
         this.tiles[origin.q][origin.r].removeEntity(e);
         this.tiles[e.q][e.r].addEntity(e);
+        return true;
     }
 
     setGoal(e: IEntity, previousGoal: IHexPoint | null, goal: IHexPoint) {
-        if(previousGoal)
+        if (previousGoal)
             this.tiles[previousGoal.q][previousGoal.r].removeEntityGoal(e);
         this.tiles[goal.q][goal.r].addEntityGoal(e);
     }
 
     private foreachTile(callback: (tile: Tile) => void) {
-        for(let q = -1 * this.maxDistance; q <= this.maxDistance; q++) {
-            for(let r = -1 * this.maxDistance; r <= this.maxDistance; r++) {
-                if(!this.tiles[q] || !this.tiles[q][r]) continue;
+        for (let q = -1 * this.maxDistance; q <= this.maxDistance; q++) {
+            for (let r = -1 * this.maxDistance; r <= this.maxDistance; r++) {
+                if (!this.tiles[q] || !this.tiles[q][r]) continue;
                 callback(this.tiles[q][r]);
             }
         }

@@ -5,11 +5,11 @@ import {ref} from "vue";
 import type {I2DPoint} from "@/models/I2DPoint";
 
 
-export const useTilesMap = () => {
+export const useTilesMap = (distance: number, wanderers: number) => {
     const lastTickTime = ref<number>(0);
     const ticks = ref<number>(0);
-    const scale = 15;
-    const maxDistance = 20;
+    let scale = 15;
+    const maxDistance = distance;
     const tiles: Tile[][] = []
     let state = ref<'progress'|'idle'>('idle');
 
@@ -28,7 +28,7 @@ export const useTilesMap = () => {
     let ctx : CanvasRenderingContext2D | null = null
     const world = new World(maxDistance, tiles);
 
-    for (let x = 0; x < 10; x++)
+    for (let x = 0; x < wanderers; x++)
         world.createWanderer();
 
 
@@ -42,6 +42,7 @@ export const useTilesMap = () => {
             return
         }
         center2D = {x: canvas.width / 2, y: canvas.height / 2}
+        scale = Math.min(canvas.width, canvas.height) / (maxDistance * 3)
     }
     const tick = () => {
         if(!ctx) return;
