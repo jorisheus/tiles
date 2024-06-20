@@ -2,12 +2,22 @@
 import {World} from "@/world";
 import {add, getDirection, getFirstStepFromAToB} from "@/axial";
 import type {IHexPoint} from "@/models/IHexPoint";
+import {Rabbit} from "@/rabbit";
+
+export function deserializeAnimal(world: World, serialized: string): Animal {
+    const data = JSON.parse(serialized) as ISerializedAnimal;
+    const rabbit = new Rabbit(world, data.location);
+    rabbit.energy = data.energy;
+    rabbit.age = data.age;
+    rabbit.deserialize(data.sub);
+    return rabbit;
+}
 
 export abstract class Animal implements IAnimal {
     
     public energy: number;
     public age = 0;
-    constructor(protected world: World, public location: IHexPoint, public startEnergy: number) {
+    protected constructor(protected world: World, public location: IHexPoint, public startEnergy: number) {
         this.energy = startEnergy;
     }
 
@@ -16,7 +26,7 @@ export abstract class Animal implements IAnimal {
     protected abstract maximumAge: number;
     protected abstract name: string;
     protected abstract do(tickCount: number) : void;
-    protected abstract getGoal() : IHexPoint | null;
+    public abstract getGoal() : IHexPoint | null;
     
     tick = (tickCount: number) => {
         if (this.isSleeping()) {
@@ -42,8 +52,8 @@ export abstract class Animal implements IAnimal {
         
         this.do(tickCount);
     };
-    
 
+    public getSpecificColor = () => this.isSleeping() ? 'yellow' : null;
     public isSleeping = () => this.sleepRemaining > 0;
     
     private sleepRemaining = 0;
@@ -64,5 +74,24 @@ export abstract class Animal implements IAnimal {
         }
     }
 
+    protected abstract serializeAnimal() : string;
+    public abstract deserialize(data: string) : void;
+    public serialize(): string {
+        return JSON.stringify({
+            type: 'Rabbit',
+            energy: this.energy,
+            age: this.age,
+            location: this.location,
+            sub: this.serializeAnimal()
+        })
+    }
 
+}
+
+export interface ISerializedAnimal {
+    type: string;
+    energy: number;
+    age: number;
+    location: IHexPoint;
+    sub: string
 }

@@ -1,16 +1,19 @@
 ﻿import {Hex} from "./hex";
 import {Rabbit} from "./rabbit";
 import {type IEntity} from "./models/IEntity";
-import {Tile} from "./tile";
-import {add, getDirection, getDistance, getNeighbour, getRandomPointWithinDistance, scale} from "./axial";
+import {deserializeTile, Tile} from "./tile";
+import {add, getDirection, getDistance, getNeighbour, getRandomPointWithinDistance, getRing, scale} from "./axial";
 import {type I2DPoint} from "./models/I2DPoint";
 import type {IHexPoint} from "@/models/IHexPoint";
+import {deserializeAnimal} from "@/animal";
+
 
 export class World {
 
     private entities: IEntity[] = [];
     private births: number = 0;
     private deaths: number = 0;
+    private tickCount: number = 0;
     public logEntries: string[] = [];
 
     constructor(public maxDistance: number, public tiles: Tile[][]) {
@@ -20,7 +23,7 @@ export class World {
     createRabbit() {
         let hex = this.getRandomLocation();
         const tile = this.safeGetTile(hex);
-        if(!tile) return;
+        if (!tile) return;
         const w = new Rabbit(this, tile);
         tile.addEntity(w);
         this.entities.push(w);
@@ -29,12 +32,13 @@ export class World {
     }
 
     tick(tickCount: number) {
+        this.tickCount = tickCount;
         this.entities.forEach(e => e.tick(tickCount))
         this.foreachTile((tile) => {
             tile.tick()
         })
     }
-    
+
     log(message: string) {
         this.logEntries = [message, ...this.logEntries.slice(0, 19)]
         console.log(message)
@@ -169,7 +173,7 @@ export class World {
             this.safeGetTile(previousGoal)?.removeEntityGoal(e);
         this.safeGetTile(goal)?.addEntityGoal(e);
     }
-    
+
     private safeGetTile(loc: IHexPoint): Tile | null {
         if (!this.tiles[loc.q]) return null;
         return this.tiles[loc.q][loc.r] || null;
@@ -197,6 +201,49 @@ export class World {
         this.safeGetTile(e.location)?.addEntity(e);
         this.births++;
     }
+
+    public deserialize(serialized: ISerializedWorld) {
+        this.births = serialized.births;
+        this.deaths = serialized.deaths;
+        this.tickCount = serialized.tickCount;
+        this.logEntries = serialized.logEntries;
+
+        this.entities = serialized.entities.map(e => {
+            const rabbit = deserializeAnimal(this, e);
+            this.safeGetTile(rabbit.location)?.addEntity(rabbit);
+            const goal = rabbit.getGoal();
+            if(goal != null)
+                this.safeGetTile(goal)?.addEntityGoal(rabbit);
+            
+            return rabbit;
+        });
+    }
+
+
+    public serialize(): string {
+        const entities = this.entities.map(e => e.serialize());
+        const tiles : string[] = [];
+        this.foreachTile(tile => tiles.push(tile.serialize()))
+        return JSON.stringify({
+            entities,
+            tickCount: this.tickCount,
+            births: this.births,
+            deaths: this.deaths,
+            logEntries: this.logEntries,
+            maxDistance: this.maxDistance,
+            tiles
+        });
+    }
+}
+
+export interface ISerializedWorld {
+    entities: string[];
+    tickCount: number;
+    births: number;
+    deaths: number;
+    logEntries: string[];
+    maxDistance: number;
+    tiles: string[];
 }
 
 export interface IHexSteps {

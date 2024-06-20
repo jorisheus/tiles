@@ -1,10 +1,18 @@
 ﻿<script setup lang="ts">
 
-import {ref, onMounted, watch, onUnmounted} from 'vue'
-import {useTilesMap} from "@/init-tiles-map";
+import {ref, onMounted, watch, onUnmounted, nextTick} from 'vue'
+import {defaultObstacleOptions, useTilesMap} from "@/init-tiles-map";
 
 const mainCanvas = ref<HTMLCanvasElement | null>(null)
-const tilesMap = useTilesMap(100, 10)
+
+const serialized = window.localStorage.getItem('tilesMap')
+
+const tilesMap = useTilesMap({
+wanderers: 10,
+  distance: 100,
+  serializedWorld: serialized,
+  obstacleOptions: defaultObstacleOptions
+})
 
 const medTickTime = ref(0);
 const maxTickTime = ref(0);
@@ -33,6 +41,10 @@ const tick = () => {
     worldStats.value = tilesMap.getStats()
     setTimeout(tick, Math.max(0, 24 - tilesMap.lastTickTime.value))
   }
+  if(tilesMap.ticks.value % 100 == 0) {
+    const serialized = tilesMap.serialize()
+    window.localStorage.setItem('tilesMap', serialized)
+  }
 }
 
 onMounted(() => {
@@ -50,7 +62,14 @@ onMounted(() => {
 onUnmounted(() => {
   playing.value = false
   tilesMap.destroy()
-}) 
+})
+
+const newWorld = () => {
+  tilesMap.destroy()
+  window.localStorage.clear()
+  tilesMap.generateNewWorld()
+  window.location.reload()
+}
 
 </script>
 
@@ -62,6 +81,7 @@ onUnmounted(() => {
     <div class="font-mono">Births: {{ worldStats.births }}</div>
     <div class="font-mono">Deaths: {{ worldStats.deaths }}</div>
     <button class="border border-black bg-amber-200 p-1 m-1 shadow shadow-amber-700" @click="toggle()">{{ playing ? 'pause' : 'play'}}</button>
+    <button class="border border-black bg-amber-200 p-1 m-1 shadow shadow-amber-700" v-if="!playing" @click="newWorld()">generate new</button>
     <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank" class="text-blue-500">The Bible</a>
     <div class="font-mono text-xs text-gray-700 w-full">
       <p v-for="(entry, ix) in logEntries" class="p-1 overflow-hidden overflow-ellipsis w-full h-6 block" :class="{'bg-amber-100' : ix % 2 == 1}" :key="ix">{{entry}}</p>

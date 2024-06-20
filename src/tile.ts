@@ -8,6 +8,13 @@ function calculateApothem(radius: number): number {
     return radius * Math.cos(degrees30InRadians);
 }
 
+export function deserializeTile(serialized: string): Tile {
+    const tileData = JSON.parse(serialized) as ISerializedTile;
+    const tile = new Tile(tileData.q, tileData.r, tileData.obstacle);
+    tile.deserialize(tileData);
+    return tile;
+}
+
 export class Tile implements IHexPoint {
 
     private entities: IEntity[] = [];
@@ -15,6 +22,8 @@ export class Tile implements IHexPoint {
     private dirty = true;
     public s: number;
     private lastEntityVisit = 1000;
+    private lastRefresh = 0;
+    private refreshCycle = 80 + Math.floor(Math.random() * 40);
     highlight: number = 0;
 
     constructor(public q: number, public r: number, public obstacle: boolean = false) {
@@ -24,11 +33,12 @@ export class Tile implements IHexPoint {
 
     draw(ctx: CanvasRenderingContext2D, scale: number, center: I2DPoint) {
         if (!this.dirty) return;
+        this.lastRefresh = 0;
         
         let color = 'grey'
         if(!this.obstacle) {
-            if(this.entities.length > 0 && this.entities[0].isSleeping())
-                color = 'yellow'
+            if(this.entities.length > 0 && this.entities[0].getSpecificColor() != null)
+                color = this.entities[0].getSpecificColor()!;
             else {
                 const red = this.entities.length > 0 ? 255 : this.lastEntityVisit < 10 ? (30 + Math.floor(10 * (10 - this.lastEntityVisit))) : 30;
                 const blue = this.goals.length > 0 ? 255 : 30;
@@ -85,6 +95,13 @@ export class Tile implements IHexPoint {
             this.highlight--;
             this.dirty = true;
         }
+        
+        this.lastRefresh++;
+        
+        if(this.lastRefresh > this.refreshCycle) {
+            this.lastRefresh = 0;
+            this.dirty = true;
+        }
     }
 
     clearEntities() {
@@ -128,4 +145,35 @@ export class Tile implements IHexPoint {
         this.highlight = hightlight ? 10 : 0;
         this.dirty = true;
     }
+
+
+    serialize(): string{
+        const serialized: ISerializedTile = {
+            q: this.q,
+            r: this.r,
+            obstacle: this.obstacle,
+            lastEntityVisit: this.lastEntityVisit,
+            lastRefresh: this.lastRefresh,
+            refreshCycle: this.refreshCycle,
+            highlight: this.highlight
+        }
+        return JSON.stringify(serialized);
+    }
+
+    deserialize(tileData: ISerializedTile) {
+        this.lastEntityVisit = tileData.lastEntityVisit;
+        this.lastRefresh = tileData.lastRefresh;
+        this.refreshCycle = tileData.refreshCycle;
+        this.highlight = tileData.highlight;
+    }
 } 
+
+export interface ISerializedTile {
+    q: number;
+    r: number;
+    obstacle: boolean;
+    lastEntityVisit: number;
+    lastRefresh: number;
+    refreshCycle: number;
+    highlight: number;
+}

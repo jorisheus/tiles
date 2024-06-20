@@ -29,7 +29,7 @@ export class Rabbit extends Animal {
     protected name = "";
 
 
-    protected getGoal = () => this.goal;
+    public getGoal = () => this.goal;
 
     protected do = (tickCount: number) => {
         
@@ -85,5 +85,36 @@ export class Rabbit extends Animal {
             })*/
         }
     };
+    
+    protected serializeAnimal = () => {
+        return JSON.stringify({
+            name: this.name,
+            maximumAge: this.maximumAge,
+            goal: this.goal,
+            tempGoal: this.tempGoal,
+            pathToGoal: this.pathToGoal,
+            goalsReached: this.goalsReached
+        })
+    }
+    
+    public deserialize = (data: string) => {
+        const serialized: ISerializedRabbit = JSON.parse(data);
+        this.name = serialized.name;
+        this.maximumAge = serialized.maximumAge;
+        this.goal = serialized.goal;
+        this.tempGoal = serialized.tempGoal;
+        this.pathToGoal = serialized.pathToGoal;
+        this.goalsReached = serialized.goalsReached;
+    }
 
+}
+
+
+export interface ISerializedRabbit {
+    goal: IHexPoint,
+    tempGoal: IHexPoint | null,
+    pathToGoal: IHexPoint[],
+    goalsReached: number,
+    maximumAge: number,
+    name: string
 }

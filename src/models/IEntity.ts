@@ -3,6 +3,9 @@
 export interface IEntity {
     location: IHexPoint;
     tick(tickCount: number): void;
+    getSpecificColor(): string | null;
+    
+    serialize(): string;
 }
 
 
