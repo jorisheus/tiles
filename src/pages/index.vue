@@ -64,7 +64,7 @@ onUnmounted(() => {
     <button class="border border-black bg-amber-200 p-1 m-1 shadow shadow-amber-700" @click="toggle()">{{ playing ? 'pause' : 'play'}}</button>
     <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank" class="text-blue-500">The Bible</a>
     <div class="font-mono text-xs text-gray-700 w-full">
-      <p v-for="(entry, ix) in logEntries" class="p-1" :class="{'bg-amber-100' : ix % 2 == 1}" :key="ix">{{entry}}</p>
+      <p v-for="(entry, ix) in logEntries" class="p-1 overflow-hidden overflow-ellipsis w-full h-6 block" :class="{'bg-amber-100' : ix % 2 == 1}" :key="ix">{{entry}}</p>
     </div>
   </div>
   <canvas class="w-full h-full" ref="mainCanvas"></canvas>

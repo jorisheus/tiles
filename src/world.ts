@@ -19,7 +19,8 @@ export class World {
 
     createRabbit() {
         let hex = this.getRandomLocation();
-        const tile = this.tiles[hex.q][hex.r];
+        const tile = this.safeGetTile(hex);
+        if(!tile) return;
         const w = new Rabbit(this, tile);
         tile.addEntity(w);
         this.entities.push(w);
@@ -56,8 +57,8 @@ export class World {
     getRandomLocation(): Hex {
         do {
             const hex = getRandomPointWithinDistance(this.maxDistance - 1);
-            const tile = this.tiles[hex.q][hex.r];
-            if (!tile.obstacle) {
+            const tile = this.safeGetTile(hex);
+            if (tile != null && !tile.obstacle) {
                 return hex;
             }
         } while (true)
@@ -77,8 +78,8 @@ export class World {
         const distFromCenter = getDistance({q: 0, r: 0}, hex);
         if (distFromCenter >= this.maxDistance) return false
 
-        const tile = this.tiles[hex.q][hex.r];
-        return !tile.obstacle;
+        const tile = this.safeGetTile(hex);
+        return tile != null && !tile.obstacle;
     }
 
 
@@ -88,8 +89,8 @@ export class World {
 
         e.location.r = newLocation.r;
         e.location.q = newLocation.q;
-        this.tiles[origin.q][origin.r].removeEntity(e);
-        this.tiles[e.location.q][e.location.r].addEntity(e);
+        this.safeGetTile(origin)?.removeEntity(e);
+        this.safeGetTile(e.location)?.addEntity(e);
         return true;
     }
 
@@ -146,7 +147,8 @@ export class World {
             for (let hex of fringes[k - 1]) {
                 for (let dir = 0; dir < 6; dir++) {
                     const neighbor = getNeighbour(hex.hex, dir);
-                    if (!this.tiles[neighbor.q][neighbor.r].obstacle &&
+                    const tile = this.safeGetTile(neighbor)
+                    if (tile != null && !tile.obstacle &&
                         visited.every(v => v.hex.q != neighbor.q || v.hex.r != neighbor.r)) {
                         const step = {
                             hex: neighbor,
@@ -164,8 +166,13 @@ export class World {
 
     setGoal(e: IEntity, previousGoal: IHexPoint | null, goal: IHexPoint) {
         if (previousGoal)
-            this.tiles[previousGoal.q][previousGoal.r].removeEntityGoal(e);
-        this.tiles[goal.q][goal.r].addEntityGoal(e);
+            this.safeGetTile(previousGoal)?.removeEntityGoal(e);
+        this.safeGetTile(goal)?.addEntityGoal(e);
+    }
+    
+    private safeGetTile(loc: IHexPoint): Tile | null {
+        if (!this.tiles[loc.q]) return null;
+        return this.tiles[loc.q][loc.r] || null;
     }
 
     private foreachTile(callback: (tile: Tile) => void) {
@@ -178,16 +185,16 @@ export class World {
     }
 
     removeEntity(entity: IEntity, goal: IHexPoint | null) {
-        this.tiles[entity.location.q][entity.location.r].removeEntity(entity);
+        this.safeGetTile(entity.location)?.removeEntity(entity);
         if (goal)
-            this.tiles[goal.q][goal.r].removeEntityGoal(entity);
+            this.safeGetTile(goal)?.removeEntityGoal(entity);
         this.entities = this.entities.filter(e => e != entity);
         this.deaths++;
     }
 
-    addEntity(w: IEntity) {
-        this.entities.push(w);
-        this.tiles[w.location.q][w.location.r].addEntity(w);
+    addEntity(e: IEntity) {
+        this.entities.push(e);
+        this.safeGetTile(e.location)?.addEntity(e);
         this.births++;
     }
 }
