@@ -27,7 +27,7 @@ export class Tile implements IHexPoint {
         
         let color = 'grey'
         if(!this.obstacle) {
-            if(this.entities.length > 0 && this.entities[0].sleeping())
+            if(this.entities.length > 0 && this.entities[0].isSleeping())
                 color = 'yellow'
             else {
                 const red = this.entities.length > 0 ? 255 : this.lastEntityVisit < 10 ? (30 + Math.floor(10 * (10 - this.lastEntityVisit))) : 30;

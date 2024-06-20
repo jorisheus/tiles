@@ -72,13 +72,13 @@ export const useTilesMap = (distance: number, wanderers: number, obstacleOptions
     }
 
     for (let x = 0; x < wanderers; x++)
-        world.createWanderer();
+        world.createRabbit();
     
     const setCanvas = (canvas: HTMLCanvasElement) => {
-        console.log(`Init tiles app with canvas width: ${canvas.width} height: ${canvas.height}`)
+        world.log(`Init tiles app with canvas width: ${canvas.width} height: ${canvas.height}`)
         ctx = canvas.getContext('2d');
         if (!ctx) {
-            console.error('Failed to get canvas context')
+            world.log('Failed to get canvas context')
             return
         }
         center2D = {x: canvas.width / 2, y: canvas.height / 2}
@@ -113,7 +113,7 @@ export const useTilesMap = (distance: number, wanderers: number, obstacleOptions
     }
 
 
-    return {world, tick, lastTickTime, ticks, state, setCanvas, destroy,
+    return {world, tick, lastTickTime, ticks, state, setCanvas, destroy, getLogEntries: () => world.logEntries,
         getStats: () => world.getStats()
         
     }

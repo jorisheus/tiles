@@ -1,5 +1,5 @@
 ﻿import {Hex} from "./hex";
-import {Wanderer} from "./wanderer";
+import {Rabbit} from "./rabbit";
 import {type IEntity} from "./models/IEntity";
 import {Tile} from "./tile";
 import {add, getDirection, getDistance, getNeighbour, getRandomPointWithinDistance, scale} from "./axial";
@@ -11,15 +11,16 @@ export class World {
     private entities: IEntity[] = [];
     private births: number = 0;
     private deaths: number = 0;
+    public logEntries: string[] = [];
 
     constructor(public maxDistance: number, public tiles: Tile[][]) {
-        console.log(`Created world with distance ${maxDistance} and having ${tiles.length} tiles`)
+        this.log(`Created world with distance ${maxDistance} and having ${tiles.length} tiles`)
     }
 
-    createWanderer() {
+    createRabbit() {
         let hex = this.getRandomLocation();
         const tile = this.tiles[hex.q][hex.r];
-        const w = new Wanderer(this, tile.q, tile.r);
+        const w = new Rabbit(this, tile);
         tile.addEntity(w);
         this.entities.push(w);
         this.births++;
@@ -31,6 +32,11 @@ export class World {
         this.foreachTile((tile) => {
             tile.tick()
         })
+    }
+    
+    log(message: string) {
+        this.logEntries = [message, ...this.logEntries.slice(0, 19)]
+        console.log(message)
     }
 
     public getStats() {
@@ -77,13 +83,13 @@ export class World {
 
 
     moveEntity(e: IEntity, newLocation: IHexPoint): boolean {
-        const origin = new Hex(e.q, e.r);
+        const origin = new Hex(e.location.q, e.location.r);
         if (!this.isValidLocation(newLocation)) return false
 
-        e.r = newLocation.r;
-        e.q = newLocation.q;
+        e.location.r = newLocation.r;
+        e.location.q = newLocation.q;
         this.tiles[origin.q][origin.r].removeEntity(e);
-        this.tiles[e.q][e.r].addEntity(e);
+        this.tiles[e.location.q][e.location.r].addEntity(e);
         return true;
     }
 
@@ -171,16 +177,17 @@ export class World {
         }
     }
 
-    removeEntity(entity: IEntity, goal: IHexPoint) {
-        this.tiles[entity.q][entity.r].removeEntity(entity);
-        this.tiles[goal.q][goal.r].removeEntityGoal(entity);
+    removeEntity(entity: IEntity, goal: IHexPoint | null) {
+        this.tiles[entity.location.q][entity.location.r].removeEntity(entity);
+        if (goal)
+            this.tiles[goal.q][goal.r].removeEntityGoal(entity);
         this.entities = this.entities.filter(e => e != entity);
-this.deaths++;
+        this.deaths++;
     }
 
-    addEntity(w: Wanderer) {
+    addEntity(w: IEntity) {
         this.entities.push(w);
-        this.tiles[w.q][w.r].addEntity(w);
+        this.tiles[w.location.q][w.location.r].addEntity(w);
         this.births++;
     }
 }

@@ -1,6 +1,12 @@
 ﻿import {type IHexPoint} from "./IHexPoint";
 
-export interface IEntity extends IHexPoint {
+export interface IEntity {
+    location: IHexPoint;
     tick(tickCount: number): void;
-    sleeping() : boolean;
+}
+
+
+export interface IAnimal extends IEntity {
+    energy: number;
+    isSleeping() : boolean;
 }
